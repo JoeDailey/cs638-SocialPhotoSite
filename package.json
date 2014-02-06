@@ -1,0 +1,27 @@
+{
+  "name": "cs638-SocialPhotoSite",
+  "version": "0.0.0",
+  "description": "for CS 638 starting a software company",
+  "main": "server.js",
+  "dependencies": {
+    "bcrypt": "~0.7.7",
+    "ejs": "~0.8.5",
+    "express": "~3.4.7",
+    "sqlite3": "~2.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:JoeDailey/cs638-SocialPhotoSite.git"
+  },
+  "author": "Joe Dailey, Jacob Dixon, Wayne Bontager, Matt Awad",
+  "license": "Open Source",
+  "bugs": {
+    "url": "https://github.com/JoeDailey/cs638-SocialPhotoSite/issues"
+  },
+  "homepage": "https://github.com/JoeDailey/cs638-SocialPhotoSite"
+}

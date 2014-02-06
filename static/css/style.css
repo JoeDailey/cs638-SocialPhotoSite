@@ -1,0 +1,50 @@
+.bs-example {
+	margin-left: 0;
+	margin-right: 0;
+	background-color: #fff;
+	border-width: 1px;
+	border-color: #ddd;
+	border-radius: 4px 4px 0 0;
+	box-shadow: none;
+}
+.right-half{
+	display:inline;
+}
+.navbar{
+	margin-top:20px;
+}
+.slider{
+	float:right;
+	width:33%!important;
+	padding:20px!important;;
+}
+body{
+	color:#CCC!important;
+	background-color: #333;
+	background-image:url("/static/img/back.png");
+}
+#logo{
+	width:50px;
+	margin:-5px;
+	margin-right:10px;
+}
+.navbar ul{
+	margin-top:10px;
+}
+.navbar-brand{
+	font-size:28px;
+	line-height: inherit!important;
+}
+.extra-text{
+	color:#333;
+}
+/*.panel-default > .panel-heading {
+  background-image: -webkit-linear-gradient(top, #FF6000 0%, #D14F00 100%);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fff5f5f5', endColorstr='#ffe8e8e8', GradientType=0);
+	border-color: #D14F00!important;
+}
+.panel-default{
+	border-color: #D14F00!important;
+
+}*/
