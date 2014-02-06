@@ -1,0 +1,33 @@
+node:
+	http://nodejs.org/download/
+	windows: exe installer
+	osx: installer
+	linux: untar, ./config, make, sudo make install
+
+git:
+	git clone git@github.com:JoeDailey/cs638-SocialPhotoSite.git
+
+npm (node package manager):
+	Terminal/Console
+	go in to new cs638-SocialPhotoSite folder
+	$ npm
+
+Running the server:
+	terminal/Console
+	go in to new cs638-SocialPhotoSite folder
+	$ node server.js
+	open browser, navigate to http://localhost:8000
+
+Things in first commit:
+	jquery
+	bootstrap
+	put html into views folder
+	when refering to images, cs, js files/: "/static/{js,css,img}/{filename}"
+
+ejs templating:
+	http://embeddedjs.com/
+	use tags:
+		<% include view%>
+		<% variable name%>
+		<%= variable name%> equate variable
+		<%- variable name%> force plaintext
