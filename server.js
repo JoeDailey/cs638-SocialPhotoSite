@@ -71,7 +71,9 @@ cs638.listen(port, function() {
 //Gets and Posts start///////////////////////////////////////////////////////////////////////////////////
 cs638.get('/', function(req, res){
     getUser(req, res, function(user){
-        res.render('home', {'user':user});
+        res.render('home', {'user':user
+            
+        });
     })
 });
 cs638.get('/auth', function(req, res){
@@ -137,7 +139,7 @@ cs638.post("/register", function(req, res){
                 }
             }else{
                 console.log(checkErr);
-                res.send(500, {message: 'there was an error connecting to the Database'})
+                res.send(500, {message: 'checkErr'})
             }
         });  
     });
