@@ -13,11 +13,9 @@ var sqlite3 = require("sqlite3").verbose();
 var db = new sqlite3.Database(file);
 if (!exists) {
     db.serialize(function() {
-        db.run('CREATE TABLE "users" ("user_id" INTEGER PRIMARY KEY  NOT NULL  UNIQUE , "name" VARCHAR(70) NOT NULL UNIQUE, "password" VARCHAR(61) NOT NULL, "points" INTEGER NOT NULL  DEFAULT 0, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);');
+        db.run('CREATE TABLE "users" ("user_id" INTEGER PRIMARY KEY  NOT NULL  UNIQUE, "name" VARCHAR(70) NOT NULL UNIQUE, "email" VARCHAR(140) NOT NULL UNIQUE, "password" VARCHAR(61) NOT NULL, "points" INTEGER NOT NULL  DEFAULT 0, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);');
         console.log("Creating users table.");
     });
-    } else {
-    console.log("users table exists.");
 }
 /////////END CREATE DATABASE
 //Database End/////////////////////////////////////////////////////////////////////////////
@@ -71,8 +69,16 @@ cs638.listen(port, function() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Gets and Posts start///////////////////////////////////////////////////////////////////////////////////
 cs638.get('/', function(req, res){
-        res.render('index', {});
+    getUser(req, function(user){
+        res.render('home', {'user':user});
+    })
 });
+cs638.get('/auth', function(req, res){
+    getUser(req, function(user){
+        res.render('landing', {'user':user});
+    })
+});
+
 
 //Routing End///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -107,29 +113,31 @@ cs638.post("/login", function(req, res){
 ////username
 ////password
 cs638.post("/register", function(req, res){
-    var name = req.body.username;
+    var name = req.body.name;
     var password = req.body.password;
-
+    var email = req.body.email;
+    console.log(req.body);
     db.serialize(function(){
         db.get('SELECT * FROM users WHERE name="'+name+'";', function(checkErr, checkRow){
             if(checkErr==null){
                 if(checkRow==undefined){
                     cryptPassword(password, function(cryptErr, hash){
-                        db.run('INSERT INTO users (name, password) VALUES ("'+name+'","'+hash+'");', function(err){
+                        db.run('INSERT INTO users (name, email, password) VALUES ("'+name+'","'+email+'","'+hash+'");', function(err){
                             if(err==null){
                                 res.cookie('name', ""+name, { maxAge: 3600000, signed: true });
-                                res.redirect("/");
+                                res.redirect("/asdf");
+                            }else{
+                                console.log(err);
+                                res.send(500, {message:err});
                             }
                         });
                     });
                 }else{
-                    res.statusCode(304);
+                    res.send(304, {message:"that user already exists"});
                 }
             }else{
-                res.render('error', {
-                    errorMessage:"500",
-                    errorMessage:"There was an issue connecting to the database."
-                });
+                console.log(checkErr);
+                res.send(500, {message: 'there was an error connecting to the Database'})
             }
         });  
     });
