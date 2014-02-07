@@ -39,7 +39,7 @@ cs638.set('view options', {
     layout: false
 });
 //setup password encryption
-var bcrypt = require('bcrypt');
+var bcrypt = require('bcrypt-nodejs');
 //encrypt password -> callback(err, hash)
 var cryptPassword = function(password, callback) {
    bcrypt.genSalt(10, function(err, salt) {
