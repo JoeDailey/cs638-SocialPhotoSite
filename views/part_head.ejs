@@ -30,15 +30,29 @@
           <!-- </div> -->
         </div>
         <!-- Login form -->
-        <form class="navbar-form navbar-right" role="search">
-          <div class="form-group" name="email">
-            <input type="text" class="form-control" placeholder="Email">
+        <form class="navbar-form navbar-right" id="form-login" method="POST" action="/login">
+          <div class="form-group">
+            <input type="text" name="email" id="login-email" class="form-control" placeholder="Email">
           </div>
-          <div class="form-group" name="password">
-            <input type="password" class="form-control" placeholder="Password">
+          <div class="form-group">
+            <input type="password" name="password" id="login-pass" class="form-control" placeholder="Password">
           </div>
-          <button type="submit" class="btn btn-success">Sign In</button>
+          <input type="submit" class="btn btn-success" value="Sign In">
         </form>
+        <script type="text/javascript">
+          $(document).ready(function(){
+            $('#form-login').submit(function(e){
+              var hasError = false;
+              if($('#login-email').val().length <= 0){hasError = true; $($('#login-email').parent()).addClass('has-error');}
+              if($('#login-pass').val().length <= 0){hasError = true; $($('#login-pass').parent()).addClass('has-error');}
+              if(hasError){
+                e.preventDefault();
+              }else{
+                return;
+              }
+            });
+          });
+        </script>
         <div class="navbar-collapse collapse"></div><!--/.nav-collapse -->
       </div>
     </div>

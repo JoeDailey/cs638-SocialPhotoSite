@@ -14,7 +14,7 @@ var db = new sqlite3.Database(file);
 if (!exists) {
     db.serialize(function() {
         db.run('CREATE TABLE "users" ("user_id" INTEGER PRIMARY KEY  NOT NULL  UNIQUE, "name" VARCHAR(70) NOT NULL UNIQUE, "email" VARCHAR(140) NOT NULL UNIQUE, "password" VARCHAR(61) NOT NULL, "points" INTEGER NOT NULL  DEFAULT 0, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);');
-        console.log("Creating users table.");
+        db.run('CREATE TABLE "follows" ("follow_id" INTEGER PRIMARY KEY  NOT NULL  UNIQUE, "follow_target" VARCHAR(70) NOT NULL, "follower" VARCHAR(70) NOT NULL, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);');
     });
 }
 /////////END CREATE DATABASE
@@ -72,9 +72,9 @@ cs638.listen(port, function() {
 cs638.get('/', function(req, res){
     getUser(req, res, function(user){
         res.render('home', {'user':user
-            
+
         });
-    })
+    });
 });
 cs638.get('/auth', function(req, res){
     res.render('landing');
@@ -86,15 +86,15 @@ cs638.get('/auth', function(req, res){
 //Login/Logout Start//////////////////////////////////////////////////////////////////////
 //---------------------------------------------/////-login
 cs638.post("/login", function(req, res){
-    var name = req.body.username;
+    var email = req.body.email;
     var password = req.body.password;
     db.serialize(function(){
-        db.get('SELECT * FROM users WHERE name="'+name+'";', function(err, row){
+        db.get('SELECT * FROM users WHERE email="'+email+'";', function(err, row){
             if(err==null){
                 if(row!=undefined){//exists
                     comparePassword(password, row.password, function(nul, match){
                         if(match == true){
-                            res.cookie('name', ""+row.name, { maxAge: 3600000, signed: true });
+                                res.cookie('user',""+row.name, { signed: true });
                             res.redirect("/");
                         }else{
                             res.send(304, {message:'user exists but wrong password'});
@@ -104,7 +104,7 @@ cs638.post("/login", function(req, res){
                     res.send(404, {message:'user does not exist'});
                 }
             }else{//err
-                res.send(500, {message:"dbase erro"});
+                res.send(500, {message:err});
             }
         });
     });
@@ -152,7 +152,37 @@ cs638.get('/logout', function(req, res){
 //Login/Logout END//////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 //API Start///////////////////////////////////////////////////////////////////////////////
-
+cs638.get('/api/follow/:username', function(req, res){
+    if (req.signedCookies.user == undefined) {
+        res.send(403, {message:"no user signed in"});
+    }else{
+        db.serialize(function(){
+            db.get('SELECT * follows WHERE target="'+req.params.username+'" AND follower="'+req.signedCookies.user+'";', function(findErr, found){
+                if(findErr){
+                    if(found == undefined){
+                        db.run('INSERT INTO follows (follow_target, follower) VALUES ('+req.params.username+','+req.signedCookies.user+');', function(err){
+                            if(err){
+                                res.send(500, {message:err});
+                            }else{
+                                res.send(200, {message:"user subscribed"});
+                            }
+                        });
+                    }else{
+                        db.run('DELETE FROM follows WHERE follow_target='+req.params.username+' AND follower='+req.signedCookies.user+');', function(err){
+                            if(err){
+                                res.send(500, {message:err});
+                            }else{
+                                res.send(200, {message:"user unsubscribed"});
+                            }
+                        });
+                    }
+                }else{
+                    res.send(500, {message:err});
+                }
+            });
+        });
+    }
+});
 //API End///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 //404 Error start/////////////////////////////////////////////////////////////////////////
@@ -167,16 +197,16 @@ cs638.get("*", function(req, res){
 //Misc Start//////////////////////////////////////////////////////////////////////////////
 //base cookie check and navigation building
 var getUser = function(req, res, callback){
-    console.log(req.signedCookies);
     if (req.signedCookies.user == undefined) {
         res.redirect('/auth');
     } else {
         db.serialize(function(){
             db.get('SELECT * FROM users where name="'+req.signedCookies.user+'";', function(err, user){
-                if(user && err==null)
+                if(user!=undefined && !err){
+                    console.log(req.signedCookies);
                     callback(user);
-                else
-                    res.redirect('/');
+                }else
+                    res.redirect('/auth');
             });
         });
     }
