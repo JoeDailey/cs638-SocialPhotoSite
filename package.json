@@ -4,7 +4,7 @@
   "description": "for CS 638 starting a software company",
   "main": "server.js",
   "dependencies": {
-    "bcrypt": "~0.7.7",
+    "bcrypt-nodejs": "~0.0.3",
     "ejs": "~0.8.5",
     "express": "~3.4.7",
     "sqlite3": "~2.2.0"
