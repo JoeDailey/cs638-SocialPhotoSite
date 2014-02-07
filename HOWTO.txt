@@ -10,7 +10,13 @@ git:
 npm (node package manager):
 	Terminal/Console
 	go in to new cs638-SocialPhotoSite folder
-	$ npm
+	$ npm install sqlite3
+	$ npm install express
+	$ npm install bcrypt 
+		this required python 2.7.6
+		then vcbuild.exe from .net 2.0 was required -- i stopped here.
+	
+	
 
 Running the server:
 	terminal/Console
