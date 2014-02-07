@@ -6,13 +6,18 @@ var exists = fs.existsSync(file);
 if (!exists) {
     console.log("Creating DB file.");
     fs.openSync(file, "w");
+} else {
+    console.log("DB exists.");
 }
 var sqlite3 = require("sqlite3").verbose();
 var db = new sqlite3.Database(file);
 if (!exists) {
     db.serialize(function() {
         db.run('CREATE TABLE "users" ("user_id" INTEGER PRIMARY KEY  NOT NULL  UNIQUE , "name" VARCHAR(70) NOT NULL UNIQUE, "password" VARCHAR(61) NOT NULL, "points" INTEGER NOT NULL  DEFAULT 0, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);');
+        console.log("Creating users table.");
     });
+    } else {
+    console.log("users table exists.");
 }
 /////////END CREATE DATABASE
 //Database End/////////////////////////////////////////////////////////////////////////////
@@ -29,7 +34,9 @@ cs638.use("/static", express.static(__dirname + '/static')); //static
 //cookies//////////////////////////////////////////////////////////////////////////////////
 cs638.use(express.cookieParser('PhOtOs!'));
 //body parsing/////////////////////////////////////////////////////////////////////////////
-cs638.use(express.bodyParser());
+cs638.use(express.json());
+cs638.use(express.urlencoded());
+
 cs638.set('view options', {
     layout: false
 });
@@ -54,7 +61,12 @@ var comparePassword = function(password, userPassword, callback) {
    });
 };
 //start server
-cs638.listen(8000);
+//cs638.listen(8000);
+
+var port = Number(process.env.PORT || 8000);
+cs638.listen(port, function() {
+  console.log("Listening on " + port);
+});
 //setup ends//////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Gets and Posts start///////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +109,7 @@ cs638.post("/login", function(req, res){
 cs638.post("/register", function(req, res){
     var name = req.body.username;
     var password = req.body.password;
+
     db.serialize(function(){
         db.get('SELECT * FROM users WHERE name="'+name+'";', function(checkErr, checkRow){
             if(checkErr==null){
