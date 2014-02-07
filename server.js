@@ -39,24 +39,25 @@ cs638.set('view options', {
     layout: false
 });
 //setup password encryption
-var bcrypt = require('bcrypt');
+var bcrypt = require('bcrypt-nodejs');
 //encrypt password -> callback(err, hash)
 var cryptPassword = function(password, callback) {
-   bcrypt.genSalt(10, function(err, salt) {
-    if (err) return callback(err);
-      else {
-        bcrypt.hash(password, salt, function(err, hash) {
-            return callback(err, hash);
-        });
-      }
-  });
+    bcrypt.genSalt(10, function(Salterr, salt) {
+        if (Salterr)
+            return callback(Salterr);
+        else {
+            bcrypt.hash(password, salt, null, function(err, hash) {
+                return callback(err, hash);
+            });
+        }
+    });
 };
 //decrypt password -> callback(bool matches)
 var comparePassword = function(password, userPassword, callback) {
-   bcrypt.compare(password, userPassword, function(err, isPasswordMatch) {
-      if (err) return callback(err);
-      else return callback(null, isPasswordMatch);
-   });
+    bcrypt.compare(password, userPassword, function(err, isPasswordMatch) {
+        if (err) return callback(err);
+        else return callback(null, isPasswordMatch);
+    });
 };
 //start server
 //cs638.listen(8000);
@@ -122,7 +123,8 @@ cs638.post("/register", function(req, res){
                     cryptPassword(password, function(cryptErr, hash){
                         db.run('INSERT INTO users (name, email, password) VALUES ("'+name+'","'+email+'","'+hash+'");', function(err){
                             if(err==null){
-                                res.cookie("'user':"+user, { signed: true });
+                                res.cookie('user',""+name, { signed: true });
+                                console.log("redirecting home")
                                 res.redirect("/");
                             }else{
                                 console.log(err);
@@ -163,10 +165,18 @@ cs638.get("*", function(req, res){
 //Misc Start//////////////////////////////////////////////////////////////////////////////
 //base cookie check and navigation building
 var getUser = function(req, res, callback){
+    console.log(req.signedCookies);
     if (req.signedCookies.user == undefined) {
         res.redirect('/auth');
     } else {
-        callback(req.signedCookies.user);
+        db.serialize(function(){
+            db.get('SELECT * FROM users where name="'+req.signedCookies.user+'";', function(err, user){
+                if(user && err==null)
+                    callback(user);
+                else
+                    res.redirect('/');
+            });
+        });
     }
 }
 //base 36 (a->z+0->9)
