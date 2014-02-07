@@ -39,7 +39,7 @@ cs638.set('view options', {
     layout: false
 });
 //setup password encryption
-var bcrypt = require('bcrypt-nodejs');
+var bcrypt = require('bcrypt');
 //encrypt password -> callback(err, hash)
 var cryptPassword = function(password, callback) {
    bcrypt.genSalt(10, function(err, salt) {
@@ -69,14 +69,12 @@ cs638.listen(port, function() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Gets and Posts start///////////////////////////////////////////////////////////////////////////////////
 cs638.get('/', function(req, res){
-    getUser(req, function(user){
+    getUser(req, res, function(user){
         res.render('home', {'user':user});
     })
 });
 cs638.get('/auth', function(req, res){
-    getUser(req, function(user){
-        res.render('landing', {'user':user});
-    })
+    res.render('landing');
 });
 
 
@@ -103,7 +101,7 @@ cs638.post("/login", function(req, res){
                     res.send(404, {message:'user does not exist'});
                 }
             }else{//err
-                res.send(500, {message:"daase erro"});
+                res.send(500, {message:"dbase erro"});
             }
         });
     });
@@ -124,8 +122,8 @@ cs638.post("/register", function(req, res){
                     cryptPassword(password, function(cryptErr, hash){
                         db.run('INSERT INTO users (name, email, password) VALUES ("'+name+'","'+email+'","'+hash+'");', function(err){
                             if(err==null){
-                                res.cookie('name', ""+name, { maxAge: 3600000, signed: true });
-                                res.redirect("/asdf");
+                                res.cookie("'user':"+user, { signed: true });
+                                res.redirect("/");
                             }else{
                                 console.log(err);
                                 res.send(500, {message:err});
@@ -144,7 +142,7 @@ cs638.post("/register", function(req, res){
 });
 //---------------------------------------------/////-logout
 cs638.get('/logout', function(req, res){
-  res.clearCookie('name');
+  res.clearCookie('user');
   res.redirect('/');
 });
 //Login/Logout END//////////////////////////////////////////////////////////////////////////
@@ -155,43 +153,20 @@ cs638.get('/logout', function(req, res){
 ///////////////////////////////////////////////////////////////////////////////////////////
 //404 Error start/////////////////////////////////////////////////////////////////////////
 cs638.get("*", function(req, res){
-    getUser(req, function(user){
-        res.render('error', {
-            "user":JSON.stringify(user),
-            "errorNumber":404,
-            "errorMessage":"sorry, lulz"
-        });
-    })
+    res.render('error', {
+        "errorNumber":404,
+        "errorMessage":"sorry, lulz"
+    });
 });
 //404 Error end/////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 //Misc Start//////////////////////////////////////////////////////////////////////////////
 //base cookie check and navigation building
-var getUser = function(req, callback){
-    if (req.signedCookies.name == undefined) {
-        callback("null");
+var getUser = function(req, res, callback){
+    if (req.signedCookies.user == undefined) {
+        res.redirect('/auth');
     } else {
-        db.serialize(function(){
-            db.get("SELECT * FROM users WHERE name='"+req.signedCookies.name+"';", function(err, user){
-                if(err) callback("null");
-                else{
-                     // db.all('SELECT * FROM questions WHERE notification=true;', function(err, notes){
-                     //    if(err) callback(null);
-                        // else{
-                            var data = {
-                                "id":user.id,
-                                "points":user.points,
-                                "username":user.name,
-                                "notificationCount":0,//notes.length,
-                                "points":user.points
-                            };
-                            console.log(user);
-                            callback(data);
-                        // }
-                    // });
-                }
-            });
-        });
+        callback(req.signedCookies.user);
     }
 }
 //base 36 (a->z+0->9)
