@@ -5,7 +5,7 @@
 			<div class="col-md-6 header_main">
 				<img id="logo" />
 			    <h1 class="username">Username</h1>
-			    <h3 class="motto">- user motto</h3>
+			    <h4 class="motto">- user motto</h4>
 			    <button type="submit" name="follow" class="btn btn-info">Follow</button>
 			    <button type="submit" name="follow" class="btn btn-default">Unfollow</button>
 		    </div>
@@ -24,15 +24,19 @@
 			    </table>
 		    </div>
 		</div>
-
 		<!-- header test -->
 
 		<div class="row">
-			<div class="col-md-3 col-xs-0"></div>
-			<div class="col-xs-9">
-				
+			<div class="col-md-2 col-xs-0"></div>
+			<div class="col-md-8 col-xs-12">
+				<div class="jumbotron feed_main"> words
+					<% posts.forEach(function(post){ %>
+				    	<% include part_post %>
+				    <% }) %>
+					
+				</div>
 			</div>
-			<div class="col-md-3 col-xs-0"></div>
+			<div class="col-md-2 col-xs-0"></div>
 		</div>
 	</div>
 <% include part_foot %>

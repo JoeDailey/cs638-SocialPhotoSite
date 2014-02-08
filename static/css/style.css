@@ -37,6 +37,14 @@
 
 }
 
+/*feed*/
+.feed_main {
+	text-align: center;
+}
+#post_image {
+	text-align: center;
+}
+
 .slider{
 	float:right;
 	width:33% !important;
@@ -47,15 +55,15 @@ body{
 	color:#CCC !important;
 	background-color: #fff;
 	background-image:url("/static/img/back.png");
-	height: 90%;
+	height: 91%;
 }
 
 /*landing page - forcing footer to bottom*/
 .wrapper {
-min-height: 100%;
-height: auto !important;
-height: 100%;
-margin: 0 auto -4em;
+	min-height: 100%;
+	height: auto !important;
+	height: 100%;
+	margin: 0 auto -4em;
 }
 
 .landing {
