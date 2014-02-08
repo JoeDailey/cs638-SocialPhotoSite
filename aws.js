@@ -1,28 +1,55 @@
-// Load the AWS SDK for Node.js
-var AWS = require('aws-sdk');
+var express = require('express');
+var cs638 = express();
+var fs = require("fs");
+cs638.set('view engine', 'ejs');
+cs638.use(express.bodyParser());
 
-/**
- * Don't hard-code your credentials!
- * Export the following environment variables instead:
- *
- * export AWS_ACCESS_KEY_ID='AKID'
- * export AWS_SECRET_ACCESS_KEY='SECRET'
- */
+var knox      = require('knox');
+var knoxCopy  = require('knox-copy');
 
-// Set your region for future requests.
-//AWS.config.region = 'use-central-1';
+var knox_params = {
+    key: process.env.AWS_ACCESS_KEY_ID.toString(),
+    secret: process.env.AWS_SECRET_ACCESS_KEY.toString(),
+    bucket: process.env.AWS_S3_BUCKET.toString()
+  }
 
-// Create a bucket using bound parameters and put something in it.
-// Make sure to change the bucket name from "myBucket" to something unique.
-var s3bucket = new AWS.S3({params: {Bucket: 'cs638-s3'}});
+var port = Number(process.env.PORT || 8000);
+cs638.listen(port, function() {
+  console.log("Listening on " + port);
+});
 
-s3bucket.createBucket(function() {
-  var data = {Key: 'myKey', Body: 'Hello!'};
-  s3bucket.putObject(data, function(err, data) {
-    if (err) {
-      console.log("Error uploading data: ", err);
-    } else {
-      console.log("Successfully uploaded data to myBucket/myKey");
-    }
+
+cs638.get('/', function(req, res){
+ res.render('aws');
+});
+
+
+cs638.post('/', function(req, res) {
+
+  var client = knox.createClient(knox_params);
+  console.log(req.files.file.name)
+  var file = req.files.file;
+  var filename = (file.name).replace(/ /g, '-');
+
+  client.putFile(file.path, 'scratch/' + filename, {'Content-Type': file.type, 'x-amz-acl': 'public-read'}, 
+    function(err, result) {
+      if (err) {
+        return; 
+      } else {
+        if (200 == result.statusCode) { 
+          console.log('Uploaded to Amazon S3!');
+
+          fs.unlink(file.path, function (err) {
+            if (err) throw err;
+            console.log('successfully deleted /'+file.path); 
+          });
+
+        } else { 
+          console.log('Failed to upload file to Amazon S3'); 
+        }
+
+        res.redirect('/'); 
+      }
   });
+
 });
