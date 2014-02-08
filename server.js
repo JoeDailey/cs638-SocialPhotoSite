@@ -15,7 +15,7 @@ if (!exists) {
     db.serialize(function() {
         db.run('CREATE TABLE "users" ("user_id" INTEGER PRIMARY KEY NOT NULL UNIQUE, "name" VARCHAR(70) NOT NULL UNIQUE, "email" VARCHAR(140) NOT NULL UNIQUE, "password" VARCHAR(61) NOT NULL, "points" INTEGER NOT NULL  DEFAULT 0, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);');
         db.run('CREATE TABLE "follows" ("follow_id" INTEGER PRIMARY KEY NOT NULL UNIQUE, "follow_target" VARCHAR(70) NOT NULL, "follower" VARCHAR(70) NOT NULL, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);');
-        db.run('CREATE TABLE "posts" ("post_id" INTEGER PRIMARY KEY NOT NULL UNIQUE, "text" VARCHAR NOT NULL DEFAULT "", "image_url" NOT NULL, "likes" INTEGER NOT NULL DEFAULT 0, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);')
+        db.run('CREATE TABLE "posts" ("post_id" INTEGER PRIMARY KEY NOT NULL UNIQUE, "name" VARCHAR(70) NOT NULL, "text" VARCHAR NOT NULL DEFAULT "", "image_url" NOT NULL, "likes" INTEGER NOT NULL DEFAULT 0, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);')
     });
 }
 /////////END CREATE DATABASE
@@ -74,7 +74,7 @@ cs638.get('/', function(req, res){
     getUser(req, res, function(user){
         db.all('SELECT * FROM posts WHERE name IN (SELECT follow_target FROM follows WHERE follower="'+req.signedCookies.user+'");', function(getErr, posts){
             db.all('SELECT follow_target AS "" FROM follows WHERE follower="'+req.signedCookies.user+'";', function(followsErr, following){
-                console.log(following)
+                console.log(getErr);
                 res.render('home', {'user':user, 
                                     'posts':posts,
                                     'following':JSON.stringify(following)
