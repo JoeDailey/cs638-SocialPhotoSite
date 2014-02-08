@@ -73,8 +73,12 @@ cs638.listen(port, function() {
 cs638.get('/', function(req, res){
     getUser(req, res, function(user){
         db.all('SELECT * FROM posts WHERE name IN (SELECT follow_target FROM follows WHERE follower="'+req.signedCookies.user+'");', function(getErr, posts){
-            res.render('home', {'user':user, 
-                                'posts':posts
+            db.all('SELECT follow_target AS "" FROM follows WHERE follower="'+req.signedCookies.user+'";', function(followsErr, following){
+                console.log(following)
+                res.render('home', {'user':user, 
+                                    'posts':posts,
+                                    'following':JSON.stringify(following)
+                });
             });
         });
     });
