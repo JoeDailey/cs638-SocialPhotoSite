@@ -39,6 +39,21 @@ cs638.use(express.urlencoded());
 cs638.set('view options', {
     layout: false
 });
+
+
+//knos is some file management package that makes some of this easier
+var knox      = require('knox');
+var knoxCopy  = require('knox-copy');
+
+// these environment variables are needed for Amazon A3 Access and will need to be set on your dev box
+var knox_params = {
+    key: process.env.AWS_ACCESS_KEY_ID.toString(),
+    secret: process.env.AWS_SECRET_ACCESS_KEY.toString(),
+    bucket: process.env.AWS_S3_BUCKET.toString()
+  }
+
+
+
 //setup password encryption
 var bcrypt = require('bcrypt-nodejs');
 //encrypt password -> callback(err, hash)
@@ -83,10 +98,45 @@ cs638.get('/', function(req, res){
         });
     });
 });
+
 cs638.get('/auth', function(req, res){
     res.render('landing');
 });
 
+//this post looks for a file and tries to upload it to Amazon a3
+//the URL for the file will be http://cs638-s3.amazonaws.com/photos/<filename>
+//todo:make filename unique
+//todo:wire up the upload process to the posting process to save the url to the db
+
+cs638.post('/', function(req, res) {
+
+  var client = knox.createClient(knox_params);
+  console.log(req.files.file.name)
+  var file = req.files.file;
+  var filename = (file.name).replace(/ /g, '-');
+
+  client.putFile(file.path, 'scratch/' + filename, {'Content-Type': file.type, 'x-amz-acl': 'public-read'}, 
+    function(err, result) {
+      if (err) {
+        return; 
+      } else {
+        if (200 == result.statusCode) { 
+          console.log('Uploaded to Amazon S3!');
+
+          fs.unlink(file.path, function (err) {
+            if (err) throw err;
+            console.log('successfully deleted /'+file.path); 
+          });
+
+        } else { 
+          console.log('Failed to upload file to Amazon S3'); 
+        }
+
+        res.redirect('/'); 
+      }
+  });
+
+});
 
 //Routing End///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
