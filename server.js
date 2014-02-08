@@ -25,6 +25,7 @@ if (!exists) {
 //rendering/////////////////////////////////////////////////////////////////////////////// 
 var express = require('express');
 var cs638 = express();
+cs638.use(express.bodyParser());
 cs638.use(express.favicon());
 
 cs638.set('view engine', 'ejs');
