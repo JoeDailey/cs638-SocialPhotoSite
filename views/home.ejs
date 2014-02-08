@@ -32,6 +32,17 @@
 		<div class="row">
 			<div class="col-md-2 col-xs-0"></div>
 			<div class="col-md-8 col-xs-12">
+				<!-- start: create post/upload -->
+				<div class="well col-md-10">
+					<textarea rows="2" class="form-control" placeholder="Upload a picture and post!">
+					</textarea> 
+				</div>
+				<div class="col-md-2">
+					<form method="post" action="/" data-toggle-value="is_private" enctype="multipart/form-data"><input type="file" name="file"><input type="submit" data-toggle="button" value="Upload"></form>
+					<button type="submit" name="follow" class="btn-sm btn-default">Post</button>
+				</div>
+				<!-- end: create post/upload -->
+
 				<div class="jumbotron feed_main"> words
 					<% posts.forEach(function(post){ %>
 				    	<% include part_post %>
