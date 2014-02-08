@@ -8,29 +8,58 @@
 	margin-right:20px;
 }
 
+/*Navigation Bar*/
 .navbar{
 	font-family: 'Ubuntu', Helvetica, Arial, sans-serif;
 	font-weight: 300;
 	background-color: #000;
 }
-/*.navbar ul {
-	font-weight: 300;
-}*/
 
 .navbar-brand{
-	line-height: inherit!important;
+	line-height: inherit !important;
+}
+
+/*Header*/
+.username {
+	font-family: 'Ubuntu', Helvetica, Arial, sans-serif;
+	font-weight: 500;
+	display: inline;
+}
+
+.motto {
+	font-family: 'Ubuntu', Helvetica, Arial, sans-serif;
+	font-weight: 300;
+	display: inline;
+}
+
+.stats_table {
+	text-align: right;
+
 }
 
 .slider{
 	float:right;
-	width:33%!important;
-	padding:20px!important;
+	width:33% !important;
+	padding:20px !important;
 }
 
 body{
-	color:#CCC!important;
+	color:#CCC !important;
 	background-color: #fff;
 	background-image:url("/static/img/back.png");
+	height: 90%;
+}
+
+/*landing page - forcing footer to bottom*/
+.wrapper {
+min-height: 100%;
+height: auto !important;
+height: 100%;
+margin: 0 auto -4em;
+}
+
+.landing {
+	padding-top: 35px;
 }
 
 .pull-right {
