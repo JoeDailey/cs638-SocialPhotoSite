@@ -13,8 +13,9 @@ var sqlite3 = require("sqlite3").verbose();
 var db = new sqlite3.Database(file);
 if (!exists) {
     db.serialize(function() {
-        db.run('CREATE TABLE "users" ("user_id" INTEGER PRIMARY KEY  NOT NULL  UNIQUE, "name" VARCHAR(70) NOT NULL UNIQUE, "email" VARCHAR(140) NOT NULL UNIQUE, "password" VARCHAR(61) NOT NULL, "points" INTEGER NOT NULL  DEFAULT 0, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);');
-        db.run('CREATE TABLE "follows" ("follow_id" INTEGER PRIMARY KEY  NOT NULL  UNIQUE, "follow_target" VARCHAR(70) NOT NULL, "follower" VARCHAR(70) NOT NULL, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);');
+        db.run('CREATE TABLE "users" ("user_id" INTEGER PRIMARY KEY NOT NULL UNIQUE, "name" VARCHAR(70) NOT NULL UNIQUE, "email" VARCHAR(140) NOT NULL UNIQUE, "password" VARCHAR(61) NOT NULL, "points" INTEGER NOT NULL  DEFAULT 0, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);');
+        db.run('CREATE TABLE "follows" ("follow_id" INTEGER PRIMARY KEY NOT NULL UNIQUE, "follow_target" VARCHAR(70) NOT NULL, "follower" VARCHAR(70) NOT NULL, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);');
+        db.run('CREATE TABLE "posts" ("post_id" INTEGER PRIMARY KEY NOT NULL UNIQUE, "text" VARCHAR NOT NULL DEFAULT "", "image_url" NOT NULL, "likes" INTEGER NOT NULL DEFAULT 0, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);')
     });
 }
 /////////END CREATE DATABASE
@@ -71,8 +72,10 @@ cs638.listen(port, function() {
 //Gets and Posts start///////////////////////////////////////////////////////////////////////////////////
 cs638.get('/', function(req, res){
     getUser(req, res, function(user){
-        res.render('home', {'user':user
-
+        db.all('SELECT * FROM posts WHERE name IN (SELECT follow_target FROM follows WHERE follower="'+req.signedCookies.user+'");', function(getErr, posts){
+            res.render('home', {'user':user, 
+                                'posts':posts
+            });
         });
     });
 });
@@ -157,10 +160,11 @@ cs638.get('/api/follow/:username', function(req, res){
         res.send(403, {message:"no user signed in"});
     }else{
         db.serialize(function(){
-            db.get('SELECT * follows WHERE target="'+req.params.username+'" AND follower="'+req.signedCookies.user+'";', function(findErr, found){
-                if(findErr){
+            db.get('SELECT * FROM follows WHERE follow_target="'+req.params.username+'" AND follower="'+req.signedCookies.user+'";', function(findErr, found){
+                if(!findErr){
+                    console.log(found);
                     if(found == undefined){
-                        db.run('INSERT INTO follows (follow_target, follower) VALUES ('+req.params.username+','+req.signedCookies.user+');', function(err){
+                        db.run('INSERT INTO follows (follow_target, follower) VALUES ("'+req.params.username+'","'+req.signedCookies.user+'");', function(err){
                             if(err){
                                 res.send(500, {message:err});
                             }else{
@@ -168,7 +172,7 @@ cs638.get('/api/follow/:username', function(req, res){
                             }
                         });
                     }else{
-                        db.run('DELETE FROM follows WHERE follow_target='+req.params.username+' AND follower='+req.signedCookies.user+');', function(err){
+                        db.run('DELETE FROM follows WHERE follow_target="'+req.params.username+'" AND follower="'+req.signedCookies.user+'";', function(err){
                             if(err){
                                 res.send(500, {message:err});
                             }else{
@@ -177,7 +181,7 @@ cs638.get('/api/follow/:username', function(req, res){
                         });
                     }
                 }else{
-                    res.send(500, {message:err});
+                    res.send(500, {message:findErr});
                 }
             });
         });
