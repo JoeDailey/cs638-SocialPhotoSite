@@ -35,6 +35,7 @@ cs638.use(express.cookieParser('PhOtOs!'));
 //body parsing/////////////////////////////////////////////////////////////////////////////
 cs638.use(express.json());
 cs638.use(express.urlencoded());
+cs638.use(express.bodyParser());
 
 cs638.set('view options', {
     layout: false
@@ -46,10 +47,11 @@ var knox      = require('knox');
 var knoxCopy  = require('knox-copy');
 
 // these environment variables are needed for Amazon A3 Access and will need to be set on your dev box
+//these are my pesonal keys, I don't want to burden wayne with making new ones Like i had to do dont fuck me over.
 var knox_params = {
-    key: process.env.AWS_ACCESS_KEY_ID.toString(),
-    secret: process.env.AWS_SECRET_ACCESS_KEY.toString(),
-    bucket: process.env.AWS_S3_BUCKET.toString()
+    key: 'AKIAJWOO3NJ2M2GBNGSA',
+    secret: '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',
+    bucket: 'cs638-a3'
   }
 
 
@@ -78,7 +80,7 @@ var comparePassword = function(password, userPassword, callback) {
 //start server
 //cs638.listen(8000);
 
-var port = Number(process.env.PORT || 8000);
+var port = Number(8000);
 cs638.listen(port, function() {
   console.log("Listening on " + port);
 });
@@ -119,33 +121,35 @@ cs638.get('/user/:username', function(req, res){
 //todo:make filename unique
 //todo:wire up the upload process to the posting process to save the url to the db
 
-cs638.post('/', function(req, res) {
+cs638.post('/post', function(req, res) {
+    console.log('photo');
+    var client = knox.createClient(knox_params);
+    console.log(req.files);
+    var file = req.files.photo;
+    // var filename = (file.name).replace(/ /g, '-');
+    console.log(file.path +', '+file.name);
+    client.putFile(file.path, 'scratch/' + file.name, {'Content-Type': file.type, 'x-amz-acl': 'public-read'}, function(err, result) {
+        if(err) {
+            console.log(err);
+            return; 
+        } else {
+            if (200 == result.statusCode) {
 
-  var client = knox.createClient(knox_params);
-  console.log(req.files.file.name)
-  var file = req.files.file;
-  var filename = (file.name).replace(/ /g, '-');
+            console.log('Uploaded to Amazon S3!');
 
-  client.putFile(file.path, 'scratch/' + filename, {'Content-Type': file.type, 'x-amz-acl': 'public-read'}, 
-    function(err, result) {
-      if (err) {
-        return; 
-      } else {
-        if (200 == result.statusCode) { 
-          console.log('Uploaded to Amazon S3!');
+            fs.unlink(file.path, function (err) {
+                if(err) 
+                    throw err;
+                console.log('successfully deleted /'+file.path); 
+            });
 
-          fs.unlink(file.path, function (err) {
-            if (err) throw err;
-            console.log('successfully deleted /'+file.path); 
-          });
+            }else 
+                console.log(result.statusCode);
+                // console.log(result); 
 
-        } else { 
-          console.log('Failed to upload file to Amazon S3'); 
+            res.redirect('/'); 
         }
-
-        res.redirect('/'); 
-      }
-  });
+    });
 
 });
 

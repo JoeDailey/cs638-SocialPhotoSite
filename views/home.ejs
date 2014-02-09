@@ -25,7 +25,11 @@
 		    </div>
 		</div>
 		<div>
-			<form method="post" action="/" data-toggle-value="is_private" enctype="multipart/form-data"><input type="file" name="file"><input type="submit" data-toggle="button" value="Upload"></form>
+			<form method="POST" action="/post" enctype="multipart/form-data">
+				<div class="form-group">
+					<input type="file" name="photo" class="form-control">
+				</div>
+				<input type="submit" class="btn btn-success" value="upload">
 			</form>
 		</div>	
 		<!-- header test -->
