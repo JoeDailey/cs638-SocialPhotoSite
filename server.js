@@ -25,6 +25,7 @@ if (!exists) {
 //rendering/////////////////////////////////////////////////////////////////////////////// 
 var express = require('express');
 var cs638 = express();
+cs638.use(express.bodyParser());
 cs638.use(express.favicon());
 
 cs638.set('view engine', 'ejs');
@@ -49,9 +50,12 @@ var knoxCopy  = require('knox-copy');
 // these environment variables are needed for Amazon A3 Access and will need to be set on your dev box
 //these are my pesonal keys, I don't want to burden wayne with making new ones Like i had to do dont fuck me over.
 var knox_params = {
-    key: 'AKIAJWOO3NJ2M2GBNGSA',
-    secret: 'MAcw+AoRcqWo6Yo42uFRmC1RXxQl9zcA3Tr8nvBy',
-    bucket: 'cs638-a3'
+//    key: process.env.AWS_ACCESS_KEY_ID.toString(),
+//    secret: process.env.AWS_SECRET_ACCESS_KEY.toString(),
+//    bucket: process.env.AWS_S3_BUCKET.toString()
+    key: "AKIAJWOO3NJ2M2GBNGSA",
+    secret: "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",
+    bucket: "cs638-s3"
   }
 
 
@@ -89,7 +93,7 @@ cs638.listen(port, function() {
 //Gets and Posts start///////////////////////////////////////////////////////////////////////////////////
 cs638.get('/', function(req, res){
     getUser(req, res, function(user){
-        db.all('SELECT * FROM posts WHERE name IN (SELECT follow_target FROM follows WHERE follower="'+req.signedCookies.user+'");', function(getErr, posts){
+        db.all('SELECT * FROM posts WHERE name IN (SELECT follow_target FROM follows WHERE follower="'+req.signedCookies.user+'") ORDER BY created_at DESC;', function(getErr, posts){
             if(!getErr)
                 db.all('SELECT follow_target AS "" FROM follows WHERE follower="'+req.signedCookies.user+'";', function(followsErr, following){
                     console.log(followsErr);
@@ -116,41 +120,48 @@ cs638.get('/user/:username', function(req, res){
     });
 });
 
-//this post looks for a file and tries to upload it to Amazon a3
-//the URL for the file will be http://cs638-s3.amazonaws.com/photos/<filename>
+//this post looks for a file and tries to upload it to Amazon s3
+//the URL for the file will be https://s3.amazonaws.com/cs638-s3/scratch/<filename>
 //todo:make filename unique
 //todo:wire up the upload process to the posting process to save the url to the db
 
 cs638.post('/post', function(req, res) {
-    console.log('photo');
-    var client = knox.createClient(knox_params);
-    console.log(req.files);
-    var file = req.files.photo;
-    // var filename = (file.name).replace(/ /g, '-');
-    console.log(file.path +', '+file.name);
-    client.putFile(file.path, 'scratch/' + file.name, {'Content-Type': file.type, 'x-amz-acl': 'public-read'}, function(err, result) {
-        if(err) {
-            console.log(err);
-            return; 
-        } else {
-            if (200 == result.statusCode) {
+    if(req.signedCookies.user==undefined){
+        res.redirect('/auth');
+    }else{
+        var client = knox.createClient(knox_params);
+        console.log(req.files.photo.name)
+        var file = req.files.photo;
+        var uuid = require('node-uuid');
+        //var filename = (file.name).replace(/ /g, '-');
+        var filename = uuid.v4()+'.jpg'
 
-            console.log('Uploaded to Amazon S3!');
+        client.putFile(file.path, 'scratch/' + filename, {'Content-Type': file.type, 'x-amz-acl': 'public-read'}, function(err, result) {
+            if (err) {
+                return; 
+            } else {
+                if (200 == result.statusCode) { 
+                    console.log('Uploaded to Amazon S3!');
 
-            fs.unlink(file.path, function (err) {
-                if(err) 
-                    throw err;
-                console.log('successfully deleted /'+file.path); 
-            });
+                    fs.unlink(file.path, function (err) {
+                        if (err) throw err;
+                        console.log('successfully deleted /'+file.path); 
+                    });
 
-            }else 
-                console.log(result.statusCode);
-                // console.log(result); 
-
-            res.redirect('/'); 
-        }
-    });
-
+                } else { 
+                    console.log('Failed to upload file to Amazon S3'); 
+                }
+                db.run('INSERT INTO posts (text, image_url, name) VALUES ("'+req.body.text+'", "https://s3.amazonaws.com/cs638-s3/scratch/'+ filename+'", "'+req.signedCookies.user+'")', function(err){
+                    if(!err)
+                        res.end();
+                    else{
+                        console.log(err);
+                        res.send(500, {message:err}); 
+                    }
+                })
+            }
+        });
+    }
 });
 
 //Routing End///////////////////////////////////////////////////////////////////////////////
@@ -294,3 +305,4 @@ function id2url(id){
 
 //Misc End//////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
+ 
