@@ -48,9 +48,12 @@ var knoxCopy  = require('knox-copy');
 
 // these environment variables are needed for Amazon A3 Access and will need to be set on your dev box
 var knox_params = {
-    key: process.env.AWS_ACCESS_KEY_ID.toString(),
-    secret: process.env.AWS_SECRET_ACCESS_KEY.toString(),
-    bucket: process.env.AWS_S3_BUCKET.toString()
+//    key: process.env.AWS_ACCESS_KEY_ID.toString(),
+//    secret: process.env.AWS_SECRET_ACCESS_KEY.toString(),
+//    bucket: process.env.AWS_S3_BUCKET.toString()
+      key: "AKIAJWOO3NJ2M2GBNGSA",
+      secret: "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",
+      bucket: "cs638-s3"
   }
 
 
@@ -104,8 +107,8 @@ cs638.get('/auth', function(req, res){
     res.render('landing');
 });
 
-//this post looks for a file and tries to upload it to Amazon a3
-//the URL for the file will be http://cs638-s3.amazonaws.com/photos/<filename>
+//this post looks for a file and tries to upload it to Amazon s3
+//the URL for the file will be https://s3.amazonaws.com/cs638-s3/scratch/<filename>
 //todo:make filename unique
 //todo:wire up the upload process to the posting process to save the url to the db
 
@@ -114,8 +117,10 @@ cs638.post('/', function(req, res) {
   var client = knox.createClient(knox_params);
   console.log(req.files.file.name)
   var file = req.files.file;
-  var filename = (file.name).replace(/ /g, '-');
-
+  var uuid = require('node-uuid');
+  //var filename = (file.name).replace(/ /g, '-');
+  var filename = uuid.v4()+'.jpg'
+  
   client.putFile(file.path, 'scratch/' + filename, {'Content-Type': file.type, 'x-amz-acl': 'public-read'}, 
     function(err, result) {
       if (err) {
@@ -133,7 +138,7 @@ cs638.post('/', function(req, res) {
           console.log('Failed to upload file to Amazon S3'); 
         }
 
-        res.redirect('/'); 
+        res.send('<html><body>uploaded to: https://s3.amazonaws.com/cs638-s3/scratch/' + filename + '<br/><br/><img src="https://s3.amazonaws.com/cs638-s3/scratch/' + filename + '"/></body></html>'); 
       }
   });
 
