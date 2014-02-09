@@ -17,6 +17,7 @@
 
 .navbar-brand{
 	line-height: inherit !important;
+	color: #ccc;
 }
 
 /*Header*/
@@ -24,6 +25,7 @@
 	font-family: 'Ubuntu', Helvetica, Arial, sans-serif;
 	font-weight: 500;
 	display: inline;
+	/*padding-left: 40px;*/
 }
 
 .motto {
@@ -34,15 +36,24 @@
 
 .stats_table {
 	text-align: right;
-
+	padding-top: 40px;
 }
 
 /*feed*/
 .feed_main {
 	text-align: center;
 }
-#post_image {
-	text-align: center;
+
+
+.post_border {
+	border: 5px;
+}
+
+.img-responsive {
+	max-width: 100%;
+	height: auto;
+	padding-top: 20px;
+	padding-bottom: 20px;
 }
 
 .slider{

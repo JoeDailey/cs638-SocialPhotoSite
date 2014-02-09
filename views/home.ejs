@@ -2,14 +2,18 @@
 <% include part_scripts %>
 	<div class="container">
 		<!-- header test -->
-		<div class="page-header col-xs-12">
-			<div class="col-md-6 header_main">
-				<img id="logo" />
-			    <h1 class="username"><%= user.name %></h1>
-			    <h4 class="motto">- user motto</h4>
-				<button class="btn btn-default follow-button" username="<%= user.name %>">follow</button>
+		<div class="page-header col-xs-12" >
+			<div class="col-md-6" style="padding-top: 30px;">
+				<div class="col-sm-1 col-md-2 col-xs-12" style="padding-top: 10px;"><img id="logo"/></div>
+			    <div class="col-lg-6 col-xs-12" style="padding-top: 10px;">
+			    	<h1 class="username"><%= user.name %></h1>
+			    	<h4 class="motto" >- user motto</h4>
+			    </div>
+			    <div class="col-sm-4 col-xs-12" style="padding-top: 15px;">
+				<button class="btn btn-default follow-button" username="<%= user.name %>" >follow</button>
+			</div>
 		    </div>
-		    <div class="col-md-3 col-sm-6 pull-right">
+		    <div class="col-md-3 col-sm-6 pull-right" style="padding-top: 20px;">
 		    	<table class="table stats_table">
 			    	<tr>
 			    		<td>Posts</td>
@@ -26,7 +30,7 @@
 		</div>
 		<!-- header test -->
 		<div class="row">
-			<div class=" col-md-offset-1 col-md-10 col-xs-12">
+			<div class=" col-lg-offset-2 col-md-offset-1 col-lg-8 col-md-10 col-xs-12">
 				<!-- start: create post/upload -->
 				<div class="well col-md-12">
 					<form method="POST" id="post-form" action="/post" enctype="multipart/form-data">
@@ -43,7 +47,7 @@
 				<div class="clearfix"></div>
 				<!-- end: create post/upload -->
 
-				<div class="well col-md-12feed_main">
+				<div class="well col-md-12 feed_main">
 					<% posts.forEach(function(post){ %>
 				    	<% include part_post %>
 				    <% }) %>

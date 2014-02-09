@@ -1,5 +1,18 @@
 <div username="<%= post.name %>">
-	<%= post.name %><button class="btn btn-default follow-button" username="<%= post.name %>">follow</button>
-	<img src="<%= post.image_url %>">
-	<p><%= post.text %></p>
+	<div class="row">
+		<div class="clearfix">
+			<div class="col-xs-12"></div>
+			<br style="clear: both;" />
+			<div class="col-sm-offset-2 col-sm-1"><img id="logo" class="thumbnail" /></div>
+			<div class="col-sm-6 pull-left" style="text-align: left; line-height: 40px;"><%= post.name %></div>
+
+			<button class="btn btn-default follow-button" username="<%= post.name %>">follow</button>
+			<div class="container col-md-offset-2 col-md-8 col-sm-offset-1 col-sm-10" >
+				<img src="<%= post.image_url %>" class="img-responsive">
+			</div>
+			<div class="col-xs-12">
+			<p><%= post.text %></p>
+			</div>
+		</div>
+	</div>
 </div>
