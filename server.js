@@ -48,7 +48,6 @@ var knox      = require('knox');
 var knoxCopy  = require('knox-copy');
 
 // these environment variables are needed for Amazon A3 Access and will need to be set on your dev box
-//these are my pesonal keys, I don't want to burden wayne with making new ones Like i had to do dont fuck me over.
 var knox_params = {
 //    key: process.env.AWS_ACCESS_KEY_ID.toString(),
 //    secret: process.env.AWS_SECRET_ACCESS_KEY.toString(),
@@ -96,7 +95,15 @@ cs638.get('/', function(req, res){
         db.all('SELECT * FROM posts WHERE name IN (SELECT follow_target FROM follows WHERE follower="'+req.signedCookies.user+'") ORDER BY created_at DESC;', function(getErr, posts){
             if(!getErr)
                 db.all('SELECT follow_target AS "" FROM follows WHERE follower="'+req.signedCookies.user+'";', function(followsErr, following){
-                    console.log(followsErr);
+                    console.log(following);
+                    following = JSON.stringify(following);
+                    following = following.replace(/{/g, '');
+                    following = following.replace(/""/g, '');
+                    following = following.replace(/:/g, '');
+                    following = following.replace(/}/g, '');
+                    following = JSON.parse(following);
+                    console.log(following);
+
                     res.render('home', {'user':user, 
                                         'posts':posts,
                                         'following':JSON.stringify(following)
@@ -208,9 +215,11 @@ cs638.post("/register", function(req, res){
                     cryptPassword(password, function(cryptErr, hash){
                         db.run('INSERT INTO users (name, email, password) VALUES ("'+name+'","'+email+'","'+hash+'");', function(err){
                             if(err==null){
-                                res.cookie('user',""+name, { signed: true });
-                                console.log("redirecting home")
-                                res.redirect("/");
+                                db.run('INSERT INTO follows (follow_target, follower) VALUES ("'+name+'","'+name+'");', function(err){
+                                    res.cookie('user',""+name, { signed: true });
+                                    console.log("redirecting home")
+                                    res.redirect("/");
+                                });
                             }else{
                                 console.log(err);
                                 res.send(500, {message:err});

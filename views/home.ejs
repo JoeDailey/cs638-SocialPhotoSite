@@ -6,8 +6,7 @@
 				<img id="logo" />
 			    <h1 class="username"><%= user.name %></h1>
 			    <h4 class="motto">- user motto</h4>
-			    <button type="submit" name="follow" class="btn btn-info">Follow</button>
-			    <button type="submit" name="follow" class="btn btn-default">Unfollow</button>
+				<button class="btn btn-default follow-button" username="<%= user.name %>">follow</button>
 		    </div>
 		    <div class="col-md-3 col-sm-6 pull-right">
 		    	<table class="table stats_table">
@@ -70,12 +69,14 @@
 							});
 							//for following buttons' states
 							var following = <%- following %>;
-							console.log(following);
-							var children = $('.feed_main').children();
-							for (var i = children.length - 1; i >= 0; i--) {
-								var child = $(children[i]);
-								if(following.indexOf(child.attr("username"))>-1){
-									child.children(".follow-button").text('following');
+							var buttons = $('.follow-button');
+							for (var i = buttons.length - 1; i >= 0; i--) {
+								
+								var username = $(buttons[i]).attr("username");
+								if(following.indexOf(username)>-1){
+									$(buttons[i]).text('following');
+									$(buttons[i]).removeClass('btn-default');
+									$(buttons[i]).addClass('btn-success');
 								}
 							};
 						});
