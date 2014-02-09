@@ -1,4 +1,5 @@
 <% include part_head %>
+<% include part_scripts %>
 	<div class="container">
 		<!-- header test -->
 		<div class="page-header col-xs-12">
@@ -16,9 +17,9 @@
 			    		<td>Following</td>
 			    	</tr>
 			    	<tr>
-			    		<td>###</td>
-			    		<td>###</td>
-			    		<td>###</td>
+			    		<td><%= user.posts %></td>
+			    		<td><%= user.followers %></td>
+			    		<td><%= user.following %></td>
 			    	</tr>
 			    </table>
 		    </div>
@@ -47,40 +48,7 @@
 				    	<% include part_post %>
 				    <% }) %>
 					
-					<script>
-						$(document).ready(function(){
-							$('.follow-button').click(function(){
-
-								var button = $(this);
-								var username = button.attr("username");
-								$.ajax({
-									url:"/api/follow/"+username,
-									type:"GET",
-									success:function(){
-										button.toggleClass("btn-default");
-										button.toggleClass("btn-success");
-										if(button.text()=="following"){
-											button.text("follow");
-										}else{
-											button.text("following");
-										}
-									}
-								});
-							});
-							//for following buttons' states
-							var following = <%- following %>;
-							var buttons = $('.follow-button');
-							for (var i = buttons.length - 1; i >= 0; i--) {
-								
-								var username = $(buttons[i]).attr("username");
-								if(following.indexOf(username)>-1){
-									$(buttons[i]).text('following');
-									$(buttons[i]).removeClass('btn-default');
-									$(buttons[i]).addClass('btn-success');
-								}
-							};
-						});
-					</script>
+					
 				</div>
 			</div>
 			<div class="col-md-2 col-xs-0"></div>

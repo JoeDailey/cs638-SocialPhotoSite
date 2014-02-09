@@ -13,9 +13,9 @@ var sqlite3 = require("sqlite3").verbose();
 var db = new sqlite3.Database(file);
 if (!exists) {
     db.serialize(function() {
-        db.run('CREATE TABLE "users" ("user_id" INTEGER PRIMARY KEY NOT NULL UNIQUE, "name" VARCHAR(70) NOT NULL UNIQUE, "email" VARCHAR(140) NOT NULL UNIQUE, "password" VARCHAR(61) NOT NULL, "points" INTEGER NOT NULL  DEFAULT 0, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);');
+        db.run('CREATE TABLE "users" ("user_id" INTEGER PRIMARY KEY NOT NULL UNIQUE, "name" VARCHAR(70) NOT NULL UNIQUE, "email" VARCHAR(140) NOT NULL UNIQUE,"posts" INTEGER NOT NULL DEFAULT 0,"following" INTEGER NOT NULL DEFAULT 0,"followers" INTEGER NOT NULL DEFAULT 0, "password" VARCHAR(61) NOT NULL,  "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);');
         db.run('CREATE TABLE "follows" ("follow_id" INTEGER PRIMARY KEY NOT NULL UNIQUE, "follow_target" VARCHAR(70) NOT NULL, "follower" VARCHAR(70) NOT NULL, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);');
-        db.run('CREATE TABLE "posts" ("post_id" INTEGER PRIMARY KEY NOT NULL UNIQUE, "name" VARCHAR(70) NOT NULL, "text" VARCHAR NOT NULL DEFAULT "", "image_url" NOT NULL, "likes" INTEGER NOT NULL DEFAULT 0, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);')
+        db.run('CREATE TABLE "posts" ("post_id" INTEGER PRIMARY KEY NOT NULL UNIQUE, "name" VARCHAR(70) NOT NULL, "text" VARCHAR NOT NULL DEFAULT "", "image_url" NOT NULL, "created_at" DATETIME NOT NULL  DEFAULT CURRENT_TIMESTAMP);')
     });
 }
 /////////END CREATE DATABASE
@@ -91,39 +91,44 @@ cs638.listen(port, function() {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Gets and Posts start///////////////////////////////////////////////////////////////////////////////////
 cs638.get('/', function(req, res){
-    getUser(req, res, function(user){
+    getUser(req, res, function(user, following){
         db.all('SELECT * FROM posts WHERE name IN (SELECT follow_target FROM follows WHERE follower="'+req.signedCookies.user+'") ORDER BY created_at DESC;', function(getErr, posts){
             if(!getErr)
-                db.all('SELECT follow_target AS "" FROM follows WHERE follower="'+req.signedCookies.user+'";', function(followsErr, following){
-                    console.log(following);
-                    following = JSON.stringify(following);
-                    following = following.replace(/{/g, '');
-                    following = following.replace(/""/g, '');
-                    following = following.replace(/:/g, '');
-                    following = following.replace(/}/g, '');
-                    following = JSON.parse(following);
-                    console.log(following);
-
-                    res.render('home', {'user':user, 
-                                        'posts':posts,
-                                        'following':JSON.stringify(following)
-                    });
+                res.render('home', {'user':user, 
+                                    'posts':posts,
+                                    'following':JSON.stringify(following)
                 });
             else
-                res.render('error', {
-                    "errorNumber":500,
-                    "errorMessage":"There was an error in the database"
-                });
+                res.redirect('/');
         });
     });
 });
+function error(num, message, err){
+    console.log('ERROR: '+err);
+    res.render('error', {
+        "errorNumber":num,
+        "errorMessage":message,
+        "following":"[]"
+    });
+}
 
 cs638.get('/auth', function(req, res){
     res.render('landing');
 });
 cs638.get('/user/:username', function(req, res){
-    getUser(req, res, function(user){
-
+    getUser(req, res, function(user, following){
+        db.get('SELECT * FROM users WHERE users.name="'+req.params.username+'";', function(themErr, them){
+            if(themErr){ error(500, "There was an error in the database", themErr); return;}
+            db.all('SELECT * FROM posts WHERE name="'+req.params.username+'";', function(postErr, themposts){
+                if(postErr){ error(500, "There was an error in the database", postErr); return;}
+                console.log(following);
+                res.render('home', {
+                    'user':them,
+                    'posts':themposts,
+                    'following':following
+                });
+            });
+        });
     });
 });
 
@@ -151,19 +156,22 @@ cs638.post('/post', function(req, res) {
                     console.log('Uploaded to Amazon S3!');
 
                     fs.unlink(file.path, function (err) {
-                        if (err) throw err;
+                        if (err)
                         console.log('successfully deleted /'+file.path); 
                     });
 
                 } else { 
                     console.log('Failed to upload file to Amazon S3'); 
                 }
-                db.run('INSERT INTO posts (text, image_url, name) VALUES ("'+req.body.text+'", "https://s3.amazonaws.com/cs638-s3/scratch/'+ filename+'", "'+req.signedCookies.user+'")', function(err){
-                    if(!err)
-                        res.end();
-                    else{
+                db.run('INSERT INTO posts (text, image_url, name) VALUES ("'+req.body.text+'", "https://s3.amazonaws.com/cs638-s3/scratch/'+ filename+'", "'+req.signedCookies.user+'");', function(err){
+                    if(!err){
+                        db.run(' UPDATE users SET posts=posts+1 WHERE name="'+req.signedCookies.user+'";', function(err){
+
+                        });
+                        res.redirect('/');
+                    }else{
                         console.log(err);
-                        res.send(500, {message:err}); 
+                        return; 
                     }
                 })
             }
@@ -187,14 +195,14 @@ cs638.post("/login", function(req, res){
                                 res.cookie('user',""+row.name, { signed: true });
                             res.redirect("/");
                         }else{
-                            res.send(304, {message:'user exists but wrong password'});
+                            res.redirect('/');
                         }
                     });
                 }else{//does not exist
-                    res.send(404, {message:'user does not exist'});
+                    res.redirect('/');
                 }
             }else{//err
-                res.send(500, {message:err});
+                res.redirect('/');
             }
         });
     });
@@ -217,21 +225,20 @@ cs638.post("/register", function(req, res){
                             if(err==null){
                                 db.run('INSERT INTO follows (follow_target, follower) VALUES ("'+name+'","'+name+'");', function(err){
                                     res.cookie('user',""+name, { signed: true });
-                                    console.log("redirecting home")
                                     res.redirect("/");
                                 });
                             }else{
                                 console.log(err);
-                                res.send(500, {message:err});
+                                res.redirect('/');
                             }
                         });
                     });
                 }else{
-                    res.send(304, {message:"that user already exists"});
+                    res.redirect('/');
                 }
             }else{
                 console.log(checkErr);
-                res.send(500, {message: 'checkErr'})
+                res.redirect('/');
             }
         });  
     });
@@ -257,6 +264,8 @@ cs638.get('/api/follow/:username', function(req, res){
                             if(err){
                                 res.send(500, {message:err});
                             }else{
+                                db.run('UPDATE users SET followers=followers+1 WHERE name="'+req.params.username+'";', function(err){console.log("follow err: "+err);});
+                                db.run('UPDATE users SET following=following+1 WHERE name="'+req.signedCookies.user+'";', function(err){console.log("follow err: "+err);});
                                 res.send(200, {message:"user subscribed"});
                             }
                         });
@@ -266,6 +275,9 @@ cs638.get('/api/follow/:username', function(req, res){
                                 res.send(500, {message:err});
                             }else{
                                 res.send(200, {message:"user unsubscribed"});
+                                db.run('UPDATE users SET followers=followers-1 WHERE name="'+req.params.username+'";', function(err){console.log("follow err: "+err);});
+                                db.run('UPDATE users SET following=following-1 WHERE name="'+req.signedCookies.user+'";', function(err){console.log("follow err: "+err);});
+
                             }
                         });
                     }
@@ -282,7 +294,8 @@ cs638.get('/api/follow/:username', function(req, res){
 cs638.get("*", function(req, res){
     res.render('error', {
         "errorNumber":404,
-        "errorMessage":"sorry, lulz"
+        "errorMessage":"sorry, lulz", 
+        "following":"[]"
     });
 });
 //404 Error end/////////////////////////////////////////////////////////////////////////////
@@ -296,8 +309,21 @@ var getUser = function(req, res, callback){
         db.serialize(function(){
             db.get('SELECT * FROM users where name="'+req.signedCookies.user+'";', function(err, user){
                 if(user!=undefined && !err){
-                    console.log(req.signedCookies);
-                    callback(user);
+                     db.all('SELECT follow_target AS "" FROM follows WHERE follower="'+req.signedCookies.user+'";', function(followsErr, following){
+                        if(!followsErr){
+                            console.log(following);
+                            following = JSON.stringify(following);
+                            following = following.replace(/{/g, '');
+                            following = following.replace(/""/g, '');
+                            following = following.replace(/:/g, '');
+                            following = following.replace(/}/g, '');
+                            following = JSON.parse(following);
+                            console.log(following);
+                            callback(user, JSON.stringify(following));
+                        }
+                        else
+                            callback(user, []);
+                    });
                 }else
                     res.redirect('/auth');
             });
