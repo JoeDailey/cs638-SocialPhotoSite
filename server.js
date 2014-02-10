@@ -112,9 +112,14 @@ function error(num, message, err){
     });
 }
 
+cs638.get('/users', function(req, res){
+    res.render('users');
+});
+
 cs638.get('/auth', function(req, res){
     res.render('landing');
 });
+
 cs638.get('/user/:username', function(req, res){
     getUser(req, res, function(user, following){
         db.get('SELECT * FROM users WHERE users.name="'+req.params.username+'";', function(themErr, them){

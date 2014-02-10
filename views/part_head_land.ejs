@@ -27,13 +27,30 @@
             <a class="navbar-brand" href="/">Filter N' Share</a>
           <!-- </div> -->
         </div>
-        <!-- Navigation Tabs -->
-        <ul id="navbar-main" class="nav navbar-nav navbar-right">
-          <li><a href="/">Home</a></li>
-          <li><a href="/users">Users</a></li>
-          <li><a href="/logout">Logout</a></li>
-        </ul>
-
+        <!-- Login form -->
+        <form class="navbar-form navbar-right" id="form-login" method="POST" action="/login">
+          <div class="form-group">
+            <input type="text" name="email" id="login-email" class="form-control" placeholder="Email">
+          </div>
+          <div class="form-group">
+            <input type="password" name="password" id="login-pass" class="form-control" placeholder="Password">
+          </div>
+          <input type="submit" class="btn btn-success" value="Sign In">
+        </form>
+        <script type="text/javascript">
+          $(document).ready(function(){
+            $('#form-login').submit(function(e){
+              var hasError = false;
+              if($('#login-email').val().length <= 0){hasError = true; $($('#login-email').parent()).addClass('has-error');}
+              if($('#login-pass').val().length <= 0){hasError = true; $($('#login-pass').parent()).addClass('has-error');}
+              if(hasError){
+                e.preventDefault();
+              }else{
+                return;
+              }
+            });
+          });
+        </script>
         <div class="navbar-collapse collapse"></div><!--/.nav-collapse -->
       </div>
     </div>
