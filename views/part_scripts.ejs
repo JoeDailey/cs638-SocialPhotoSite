@@ -9,7 +9,7 @@
             type:"GET",
             success:function(){
               button = $('.follow-button[username="'+username+'"]');
-              button.toggleClass("btn-default");
+              button.toggleClass("btn-info");
               button.toggleClass("btn-success");
               if(button.text()=="following"){
                 button.text("follow");
@@ -27,7 +27,7 @@
           var username = $(buttons[i]).attr("username");
           if(following.indexOf(username)>-1){
             $(buttons[i]).text('following');
-            $(buttons[i]).removeClass('btn-default');
+            $(buttons[i]).removeClass('btn-info');
             $(buttons[i]).addClass('btn-success');
           }
         };
