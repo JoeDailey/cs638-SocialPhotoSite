@@ -112,9 +112,6 @@ function error(num, message, err){
     });
 }
 
-cs638.get('/users', function(req, res){
-    res.render('users');
-});
 
 cs638.get('/auth', function(req, res){
     res.render('landing');
@@ -132,6 +129,19 @@ cs638.get('/user/:username', function(req, res){
                     'posts':themposts,
                     'following':following
                 });
+            });
+        });
+    });
+});
+
+cs638.get('/users', function(req, res){
+    getUser(req, res, function(user, following){
+        db.all('SELECT * FROM users;', function(themErr, them){
+            if(themErr){ error(500, "There was an error in the database", themErr); return;}
+            res.render('users', {
+                'user':user,
+                'them':them,
+                'following':following
             });
         });
     });
