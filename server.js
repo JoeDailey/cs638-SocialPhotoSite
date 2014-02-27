@@ -52,9 +52,9 @@ var knox_params = {
 //    key: process.env.AWS_ACCESS_KEY_ID.toString(),
 //    secret: process.env.AWS_SECRET_ACCESS_KEY.toString(),
 //    bucket: process.env.AWS_S3_BUCKET.toString()
-    key: "AKIAJWOO3NJ2M2GBNGSA",
-    secret: "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",
-    bucket: "cs638-s3"
+    key: "S3_Key",
+    secret: "S3_Secret",
+    bucket: "S3_bucket"
   }
 
 
